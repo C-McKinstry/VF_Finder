@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/cmckinstry/projecta/_deps/sanitizer-subbuild/CMakeFiles/sanitizer-populate"
+		},
+		{
+			"file" : "/home/cmckinstry/projecta/_deps/sanitizer-subbuild/CMakeFiles/sanitizer-populate.rule"
+		},
+		{
+			"file" : "/home/cmckinstry/projecta/_deps/sanitizer-subbuild/CMakeFiles/sanitizer-populate-complete.rule"
+		},
+		{
+			"file" : "/home/cmckinstry/projecta/_deps/sanitizer-subbuild/sanitizer-populate-prefix/src/sanitizer-populate-stamp/sanitizer-populate-install.rule"
+		},
+		{
+			"file" : "/home/cmckinstry/projecta/_deps/sanitizer-subbuild/sanitizer-populate-prefix/src/sanitizer-populate-stamp/sanitizer-populate-mkdir.rule"
+		},
+		{
+			"file" : "/home/cmckinstry/projecta/_deps/sanitizer-subbuild/sanitizer-populate-prefix/src/sanitizer-populate-stamp/sanitizer-populate-download.rule"
+		},
+		{
+			"file" : "/home/cmckinstry/projecta/_deps/sanitizer-subbuild/sanitizer-populate-prefix/src/sanitizer-populate-stamp/sanitizer-populate-update.rule"
+		},
+		{
+			"file" : "/home/cmckinstry/projecta/_deps/sanitizer-subbuild/sanitizer-populate-prefix/src/sanitizer-populate-stamp/sanitizer-populate-patch.rule"
+		},
+		{
+			"file" : "/home/cmckinstry/projecta/_deps/sanitizer-subbuild/sanitizer-populate-prefix/src/sanitizer-populate-stamp/sanitizer-populate-configure.rule"
+		},
+		{
+			"file" : "/home/cmckinstry/projecta/_deps/sanitizer-subbuild/sanitizer-populate-prefix/src/sanitizer-populate-stamp/sanitizer-populate-build.rule"
+		},
+		{
+			"file" : "/home/cmckinstry/projecta/_deps/sanitizer-subbuild/sanitizer-populate-prefix/src/sanitizer-populate-stamp/sanitizer-populate-test.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"sanitizer-populate"
+		],
+		"name" : "sanitizer-populate"
+	}
+}

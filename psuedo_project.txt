@@ -1,0 +1,76 @@
+
+
+int main(){
+
+    Create Device
+    Create Scene
+    Create Geom
+    
+    N_tri = Number of Triangles in File
+
+    Create GeomVertexBuffer
+    Create GeomIndexBuffer
+
+    Create NormalArray, 3*N_Tri doubles
+    Create Area_Array, N_Tri doubles
+    Create CentreArray, 3*N_tri doubles
+
+    GeomIndexBuffer = [0,1,2]
+    for i in N_tri:
+        geom = CreateNewGeom
+        GeomVertexBuffer = newVertexBuffer(Geom)
+        GeomIndexBuffer = newIndexBuffer(Geom)
+
+        Add Triangle i coordinates to GeomVertexBuffer
+        Add Normal of i to NormalArray
+        Add Area of i to Area_Array
+        Add Centre of i to CentreArray
+        Commit Geom
+        Attatch Geom To Scene
+        Release Geom
+
+    Commit Scene
+
+    Create  N_Tri * N_Tri View Factor array
+
+    Define RayHit 
+
+    for a from 0 to N_Tri:
+        for b from a to N_Tri:
+            if (A ==B):
+                ViewFactor[a][b] = ViewFactor[b][a] = 0.0
+            else:
+                RayHit.org = Tri_A.centre
+                r_Vec = Tri_B.centre - Tri_A.centre
+                RayHit.dir = r_vec
+                RayHit.near = 0; RayHit.far = Infinity
+                RayHit_ID = RTC_INVALID_GEOMETRY_ID
+                
+                RTCIntersectContext context;
+                rtcInitIntersectContext(&context);
+                rtcIntersect1(scene, &context, &rayhit);
+                if (rayhit.hit.geomID != b):
+                    ViewFactor[a][b] = ViewFactor[b][a] = 0.0
+                else:
+                    f = dot(normal(A)*r_vec) * dot( normal(B)*r_Vec)
+                    f /= pi * pow(abs(r_vec),4) * area(B) // Assume Normals Normalized
+                    ViewFactor[a][b] = f
+                    ViewFactor[b][a] = Area(a)*f / Area(b)
+    
+    Print ViewFactor array to a file
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}

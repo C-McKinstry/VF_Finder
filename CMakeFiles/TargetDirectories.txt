@@ -1,0 +1,14 @@
+/home/cmckinstry/projecta/CMakeFiles/install/strip.dir
+/home/cmckinstry/projecta/CMakeFiles/edit_cache.dir
+/home/cmckinstry/projecta/CMakeFiles/VF.dir
+/home/cmckinstry/projecta/CMakeFiles/rebuild_cache.dir
+/home/cmckinstry/projecta/CMakeFiles/list_install_components.dir
+/home/cmckinstry/projecta/CMakeFiles/install/local.dir
+/home/cmckinstry/projecta/CMakeFiles/install.dir
+/home/cmckinstry/projecta/MshIO/CMakeFiles/install/strip.dir
+/home/cmckinstry/projecta/MshIO/CMakeFiles/edit_cache.dir
+/home/cmckinstry/projecta/MshIO/CMakeFiles/rebuild_cache.dir
+/home/cmckinstry/projecta/MshIO/CMakeFiles/list_install_components.dir
+/home/cmckinstry/projecta/MshIO/CMakeFiles/install/local.dir
+/home/cmckinstry/projecta/MshIO/CMakeFiles/mshio.dir
+/home/cmckinstry/projecta/MshIO/CMakeFiles/install.dir
