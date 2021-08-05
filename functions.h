@@ -1,4 +1,7 @@
 #include <math.h>
+#include <iostream>
+#include <fstream>
+using namespace std;
 
 
 
@@ -68,4 +71,46 @@ void get_centre( double* centroid, double* v, int n, double* destination ){
     destination[1] = 0.5*( centroid[1] + v[ 3*(n-1) + 1]);
     destination[2] = 0.5*( centroid[2] + v[ 3*(n-1) + 2]);
   }
+}
+
+vector<double> get_gqweights(string filename = "gauss4x4_w.txt"){
+  vector<double> w;
+  ifstream win_file;
+  win_file.open(filename);
+  if (!win_file.is_open()) {
+        std::cout << "Cannot read quadrature weights input file \n";
+  }
+  double input_double;
+  while (win_file >> input_double) {
+        w.push_back(input_double);
+    }
+  win_file.close();
+  return w;
+}
+
+vector<vector<double>> get_gqpoints(string filename = "gauss4x4_x.txt"){
+  vector<vector<double>> points;
+  double input_double;
+  ifstream xin_file;
+  xin_file.open(filename);
+  if (!xin_file.is_open()) {
+        std::cout << "Cannot read quadrature points input file \n";
+  }
+  int i=0;//Counts whether the next entry is an x or y cooridnate
+  int j=0;//Counts the row we're on
+  vector<double> empty_row;
+  while (xin_file >> input_double) {
+    if( i ==0){
+      points.push_back(empty_row);
+      points[j].push_back(input_double);
+      i=1;
+    }
+    else{
+      points[j].push_back(input_double);
+      i=0;
+      j++;
+    }
+  }
+  xin_file.close();
+  return points;
 }
