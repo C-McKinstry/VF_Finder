@@ -73,7 +73,7 @@ void get_centre( double* centroid, double* v, int n, double* destination ){
   }
 }
 
-vector<double> get_gqweights(string filename = "gauss4x4_w.txt"){
+vector<double> get_gqweights(string filename = "gauss8x8_w.txt"){
   vector<double> w;
   ifstream win_file;
   win_file.open(filename);
@@ -88,7 +88,7 @@ vector<double> get_gqweights(string filename = "gauss4x4_w.txt"){
   return w;
 }
 
-vector<vector<double>> get_gqpoints(string filename = "gauss4x4_x.txt"){
+vector<vector<double>> get_gqpoints(string filename = "gauss8x8_x.txt"){
   vector<vector<double>> points;
   double input_double;
   ifstream xin_file;

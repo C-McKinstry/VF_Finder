@@ -11,9 +11,9 @@
 #include <functions.h>
 using namespace std;
 
-double factor(double* r, double* normal_a, double* normal_b){
+double sigma(double* r, double* normal_a, double* normal_b){
   // Equal to Cos(g1)*Cos(g2) / r*r
-  double f =  - dot_prod(r, normal_a) * dot_prod(r, normal_b);
+  double f =  dot_prod(r, normal_a) * dot_prod(r, normal_b);
   f /= pow( dot_prod(r, r), 2 );
   return f;
 }
@@ -102,32 +102,33 @@ int main(int argc, char *argv[])
   vector<vector<VFdata>> view_factors;
   vector<VFdata> empty_row;
   RTCRayHit rayhit;
-  double r_vec[3];
-  double r1[3]; double r2[3];
-  double s; double t; double m; double n; double wi; double wj;
-  double f; double x;
-  double alpha_centre[3];
-  double beta_centre[3];
-  double f_inner;
 
+  //Fethces the points and weights used for Gaussian quadrature integration
   vector<vector<double>> gqpoints = get_gqpoints();
   vector<double> gqweights = get_gqweights();
   int gqp_num = gqweights.size();
-    
+  
+  //Creates the array the view factors will go into
   for(int k=0;k<num_tri;k++){
     view_factors.push_back(empty_row);
   }
   
-  for(int a =0; a<num_tri;a++){
-    for(int b=a; b<num_tri;b++){
+  for(int a =0; a<num_tri;a++){//Each emmiting traingle
+    for(int b=a; b<num_tri;b++){//Each possible recieving triangle
       if(a !=b && dot_prod(normal_array[a], normal_array[b]) < 0){
+        //Checks where VF should be 0
+
+        //Where the ray comes from
         rayhit.ray.org_x = centroid_array[a][0];
         rayhit.ray.org_y = centroid_array[a][1];
         rayhit.ray.org_z = centroid_array[a][2];
-        r_vec[0] = centroid_array[b][0] - centroid_array[a][0]; rayhit.ray.dir_x=r_vec[0];
-        r_vec[1] = centroid_array[b][1] - centroid_array[a][1]; rayhit.ray.dir_y=r_vec[1];
-        r_vec[2] = centroid_array[b][2] - centroid_array[a][2]; rayhit.ray.dir_z=r_vec[2];
-
+        
+        //Direction the ray goes in
+        rayhit.ray.dir_x = centroid_array[b][0] - centroid_array[a][0];
+        rayhit.ray.dir_y = centroid_array[b][1] - centroid_array[a][1];
+        rayhit.ray.dir_z = centroid_array[b][2] - centroid_array[a][2];
+        
+        //Ray starts at a, carries on until it hits something
         rayhit.ray.tnear  = 0.f;
         rayhit.ray.tfar   = std::numeric_limits<float>::infinity();
         rayhit.hit.geomID = RTC_INVALID_GEOMETRY_ID;
@@ -136,44 +137,48 @@ int main(int argc, char *argv[])
         rtcIntersect1(scene, &context, &rayhit);
 
         if(rayhit.hit.geomID == b){
+          //If it hits something, and it's b
+
           printf(" Triangle %d  sees triangle %d ", a, b);
-          f = 0.0;
+          
+          double sum_j = 0.0;
           for(int j=0;j<gqp_num;j++){
-            x = 0.0;
-            m = gqpoints[j][0];n=gqpoints[j][1];
+            double m = gqpoints[j][0]; double n = gqpoints[j][1];
+            
             // Set  r1 = r1(m,n)
+            double r1[3];
             r1[0] = (1-m-n)*v[a][0] + m*v[a][3] + n*v[a][6];
             r1[1] = (1-m-n)*v[a][1] + m*v[a][4] + n*v[a][7];
             r1[2] = (1-m-n)*v[a][2] + m*v[a][5] + n*v[a][8];
-
+            
+            double sum_i = 0.0;
             for(int i=0;i<gqp_num;i++){
               //s,t, coefficients describing points chosen via Gaussian Quadrature
-              s= gqpoints[i][0];t=gqpoints[i][1];
+              double s= gqpoints[i][0];double t=gqpoints[i][1];
 
               //Set r2 = (1-s-t)*r20 + s*r21 + t*r22
+              double r2[3];
               r2[0] = (1-s-t)*v[b][0] + s*v[b][3] + t*v[b][6];
               r2[1] = (1-s-t)*v[b][1] + s*v[b][4] + t*v[b][7];
               r2[2] = (1-s-t)*v[b][2] + s*v[b][5] + t*v[b][8]; 
               
               //Set r_vec = r2 - r1
+              double r_vec[3];
               r_vec[0] = r2[0] - r1[0];
               r_vec[1] = r2[1] - r1[1];
               r_vec[2] = r2[2] - r1[2];
 
-              wi = gqweights[i];
-              f_inner = wi*factor(r_vec, normal_array[a], normal_array[b]);              
-              x += f_inner;
+              double wi = gqweights[i];
+              sum_i += wi*sigma(r_vec, normal_array[a], normal_array[b]);              
             }
-            x *= (area_array[b]/2);
-            wj = gqweights[j];
-            f += wj*x;
+            double wj = gqweights[j];
+            sum_j += wj*sum_i;
           }
-          f /= - 2*M_PI;
+          double f = - area_array[b]*sum_j / (4*M_PI);
           printf(", View Factor = %f \n", f);
 
           view_factors[a].push_back(VFdata(b, f));
           view_factors[b].push_back(VFdata(a, ( area_array[a] * f ) / area_array[b] )) ;
-          //printf( " %d sees %d, VF= %F \n", a, b, f);
         }
         
       }
@@ -183,7 +188,7 @@ int main(int argc, char *argv[])
   rtcReleaseScene(scene);
   rtcReleaseDevice(device);
 
-printf("Code ran \n");
+  printf("Code ran \n");
 
   double f_add;
   int zero_rows = 0;
