@@ -9,6 +9,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <functions.h>
+#include <string>
 using namespace std;
 
 double sigma(double* r, double* normal_a, double* normal_b){
@@ -18,18 +19,10 @@ double sigma(double* r, double* normal_a, double* normal_b){
   return f;
 }
 
-struct VFdata{
-  int target;
-  double vfactor;
-  VFdata(int t, double f){
-    target=t; vfactor = f;
-  }
-};
-
 int main(int argc, char *argv[])
 {
   if (argc < 2){std::cout <<"You haven't entered a file\n";return 0;}
-  if (argc > 2){std::cout <<"One file at a time\n";return 0;}
+  if (argc > 2){std::cout << "Too many arguments \n"; return 0;}
 
   //Import .msh file to be read
   mshio::MshSpec spec = mshio::load_msh(argv[1]);
@@ -95,7 +88,6 @@ int main(int argc, char *argv[])
     rtcCommitGeometry(geom);
     rtcAttachGeometry(scene, geom);
     rtcReleaseGeometry(geom);
-    
   }
   rtcCommitScene(scene);
 
@@ -103,6 +95,8 @@ int main(int argc, char *argv[])
   vector<VFdata> empty_row;
   RTCRayHit rayhit;
 
+  printf("A: Num_try = %d \n", num_tri);
+  
   //Fethces the points and weights used for Gaussian quadrature integration
   vector<vector<double>> gqpoints = get_gqpoints();
   vector<double> gqweights = get_gqweights();
@@ -139,17 +133,18 @@ int main(int argc, char *argv[])
         if(rayhit.hit.geomID == b){
           //If it hits something, and it's b
 
-          printf(" Triangle %d  sees triangle %d ", a, b);
+          //printf(" Triangle %d  sees triangle %d ", a, b);
           
           double sum_j = 0.0;
           for(int j=0;j<gqp_num;j++){
+            //m,n, coefficients describing points chosen via Gaussian Quadrature
             double m = gqpoints[j][0]; double n = gqpoints[j][1];
             
             // Set  r1 = r1(m,n)
             double r1[3];
-            r1[0] = (1-m-n)*v[a][0] + m*v[a][3] + n*v[a][6];
-            r1[1] = (1-m-n)*v[a][1] + m*v[a][4] + n*v[a][7];
-            r1[2] = (1-m-n)*v[a][2] + m*v[a][5] + n*v[a][8];
+            r1[0] = (1.0-m-n)*v[a][0] + m*v[a][3] + n*v[a][6];
+            r1[1] = (1.0-m-n)*v[a][1] + m*v[a][4] + n*v[a][7];
+            r1[2] = (1.0-m-n)*v[a][2] + m*v[a][5] + n*v[a][8];
             
             double sum_i = 0.0;
             for(int i=0;i<gqp_num;i++){
@@ -158,9 +153,9 @@ int main(int argc, char *argv[])
 
               //Set r2 = (1-s-t)*r20 + s*r21 + t*r22
               double r2[3];
-              r2[0] = (1-s-t)*v[b][0] + s*v[b][3] + t*v[b][6];
-              r2[1] = (1-s-t)*v[b][1] + s*v[b][4] + t*v[b][7];
-              r2[2] = (1-s-t)*v[b][2] + s*v[b][5] + t*v[b][8]; 
+              r2[0] = (1.0-s-t)*v[b][0] + s*v[b][3] + t*v[b][6];
+              r2[1] = (1.0-s-t)*v[b][1] + s*v[b][4] + t*v[b][7];
+              r2[2] = (1.0-s-t)*v[b][2] + s*v[b][5] + t*v[b][8]; 
               
               //Set r_vec = r2 - r1
               double r_vec[3];
@@ -175,7 +170,7 @@ int main(int argc, char *argv[])
             sum_j += wj*sum_i;
           }
           double f = - area_array[b]*sum_j / (4*M_PI);
-          printf(", View Factor = %f \n", f);
+          //printf(", View Factor = %f \n", f);
 
           view_factors[a].push_back(VFdata(b, f));
           view_factors[b].push_back(VFdata(a, ( area_array[a] * f ) / area_array[b] )) ;
@@ -187,22 +182,14 @@ int main(int argc, char *argv[])
   } 
   rtcReleaseScene(scene);
   rtcReleaseDevice(device);
+  
+  
+  printf("C: Num_try = %d \n", num_tri);
+  
+  printdatatofile(num_nodes, num_tri, triangles.data,  view_factors);
+  
+  printf("D: Num_try = %d \n", num_tri);
 
-  printf("Code ran \n");
-
-  double f_add;
-  int zero_rows = 0;
-  for(int i=0;i<num_tri;i++){
-    f_add = 0.0;
-    if(view_factors[i].size() > 0){
-      for(int j=0;j<view_factors[i].size();j++){
-        // printf("F %d %d = %f \n", i, view_factors[i][j].target, view_factors[i][j].vfactor);
-        f_add += view_factors[i][j].vfactor;
-      }
-    }else{ zero_rows++;}
-    printf( " Triangle %d radiates a total of %f \n", i , f_add );
-  }
-  printf( "There are %d triangles that see nothing \n", zero_rows);
 
   return 0;
 }

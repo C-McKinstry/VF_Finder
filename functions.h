@@ -3,7 +3,13 @@
 #include <fstream>
 using namespace std;
 
-
+struct VFdata{
+  int target;
+  double vfactor;
+  VFdata(int t, double f){
+    target=t; vfactor = f;
+  }
+};
 
 double dot_prod( float* a, float* b){
   double p = a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
@@ -73,7 +79,7 @@ void get_centre( double* centroid, double* v, int n, double* destination ){
   }
 }
 
-vector<double> get_gqweights(string filename = "gauss8x8_w.txt"){
+vector<double> get_gqweights(string filename = "gauss4x4_w.txt"){
   vector<double> w;
   ifstream win_file;
   win_file.open(filename);
@@ -88,7 +94,7 @@ vector<double> get_gqweights(string filename = "gauss8x8_w.txt"){
   return w;
 }
 
-vector<vector<double>> get_gqpoints(string filename = "gauss8x8_x.txt"){
+vector<vector<double>> get_gqpoints(string filename = "gauss4x4_x.txt"){
   vector<vector<double>> points;
   double input_double;
   ifstream xin_file;
@@ -113,4 +119,25 @@ vector<vector<double>> get_gqpoints(string filename = "gauss8x8_x.txt"){
   }
   xin_file.close();
   return points;
+}
+
+void printdatatofile(int num_nodes, int num_tri, vector<long unsigned int> trianglesdata, vector<vector<VFdata>> view_factors){
+  ofstream OutputFile("viewfactorsdata.txt");
+  OutputFile << "#Nodes" << endl;
+  OutputFile << num_nodes << endl;
+  OutputFile << "#Triangles" << endl;
+  OutputFile << num_tri << endl;
+  OutputFile << "Triangle Data" << endl;
+  for(int i=0;i<num_tri;i++){
+
+    OutputFile << i << " ";
+    OutputFile << trianglesdata[4*i +1] << " " << trianglesdata[4*i+2] << " " << trianglesdata[4*i +3];
+    int num_seen = view_factors[i].size();
+    //printf("Triangle %d sees %d other triangles \n", i, num_seen);
+    for(int alpha = 0; alpha < num_seen;alpha++){
+      OutputFile << " f" << view_factors[i][alpha].target << " " << view_factors[i][alpha].vfactor;
+    }
+    OutputFile << endl;
+  }
+  OutputFile.close();
 }
