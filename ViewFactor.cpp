@@ -60,6 +60,7 @@ int main(int argc, char *argv[])
           ib = (unsigned*) rtcSetNewGeometryBuffer(geom,
             RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, 3*sizeof(unsigned), 1);
           ib[0] = 0; ib[1] = 1; ib[2] = 2;
+          
           //Node # of the triangle's vertices
           n1 = triangles.data[4*i +1];
           n2 = triangles.data[4*i +2];
@@ -92,8 +93,6 @@ int main(int argc, char *argv[])
           //v[num_tri][2],v[num_tri][3],v[num_tri][4],v[num_tri][5],v[num_tri][6],v[num_tri][7],v[num_tri][8]);
           //printf("It has area %f, normal: %f %f %f \n", area_array[num_tri], normal_array[num_tri][0],normal_array[num_tri][1],normal_array[num_tri][2]);
           
-          //printf("Triangle %d has nodes %d %d %d, and normal:  %f %f %f \n", num_tri, n1,n2,n3,
-          //normal_array[num_tri][0],normal_array[num_tri][1],normal_array[num_tri][2]);
           num_tri++;
         }
     }
@@ -148,17 +147,12 @@ int main(int argc, char *argv[])
         if(rayhit.hit.geomID == b){
           //If it hits something, and it's b
 
-          //printf(" Triangle %d  sees triangle %d ", a, b);
-          
           double f = calculate_viewfactor(v[a], v[b], gqp_num, gqpoints, gqweights,
            normal_array[a], normal_array[b], area_array[b]);
-          //double f =  area_array[b]*sum_j;
-          //double ar = area_array[a]*area_array[b]*sum_j;
 
           view_factors[a].push_back(VFdata(b, f));
           view_factors[b].push_back(VFdata(a, ( area_array[a] * f ) / area_array[b] )) ;
           printf("Triangle %d sees triangle %d, VF= %f \n", a,b,f);
-          //printf("Area = %f\n", ar);
 
         }
         
@@ -174,8 +168,7 @@ int main(int argc, char *argv[])
   /*
   double total = 0.0;
   double area_sum;
-  for(int t=0;t<4;t++){
-    //printf("Triangle %d sees %d triangles,", t, view_factors[t].size());
+  for(int t=0;t<2;t++){
     for(int s=0;s<view_factors[t].size();s++){
       total += (area_array[t])* view_factors[t][s].vfactor;
     }
@@ -183,7 +176,7 @@ int main(int argc, char *argv[])
   }
   total /=area_sum;
 
-  printf(" total view factor %f \n", total);
+  printf("Total view factor %f \n", total);
   */
   printdatatofile(num_tri, centroid_array,  view_factors);
 
