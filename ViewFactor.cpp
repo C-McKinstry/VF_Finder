@@ -8,6 +8,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <functions.h>
+#include <mpi.h>
 using namespace std;
 
 int main(int argc, char *argv[])
@@ -60,7 +61,6 @@ int main(int argc, char *argv[])
           ib = (unsigned*) rtcSetNewGeometryBuffer(geom,
             RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, 3*sizeof(unsigned), 1);
           ib[0] = 0; ib[1] = 1; ib[2] = 2;
-          
           //Node # of the triangle's vertices
           n1 = triangles.data[4*i +1];
           n2 = triangles.data[4*i +2];
@@ -93,6 +93,8 @@ int main(int argc, char *argv[])
           //v[num_tri][2],v[num_tri][3],v[num_tri][4],v[num_tri][5],v[num_tri][6],v[num_tri][7],v[num_tri][8]);
           //printf("It has area %f, normal: %f %f %f \n", area_array[num_tri], normal_array[num_tri][0],normal_array[num_tri][1],normal_array[num_tri][2]);
           
+          //printf("Triangle %d has nodes %d %d %d, and normal:  %f %f %f \n", num_tri, n1,n2,n3,
+          //normal_array[num_tri][0],normal_array[num_tri][1],normal_array[num_tri][2]);
           num_tri++;
         }
     }
@@ -115,13 +117,31 @@ int main(int argc, char *argv[])
   for(int k=0;k<num_tri;k++){
     view_factors.push_back(empty_row);
   }
+
+  int numpairs = sumonetonminusone(num_tri);
+  int myrank; int numranks;
+  
+  MPI_Init(&argc,&argv);
+  MPI_Comm_size(MPI_COMM_WORLD,&numranks);
+  MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+
+  int pairsperrank = numpairs / numranks ;
+  int start = pairsperrank*myrank;
+  int end = (myrank+1)*pairsperrank;
+  if(myrank = numranks - 1){
+    end = numpairs;
+  }
+
+  int currentpairnum = -1;
   
   for(int a =0; a<num_tri;a++){//Each emmiting traingle
-    for(int b=a; b<num_tri;b++){//Each possible recieving triangle
-    vector<double> r_ctc;
-    r_ctc.push_back( centroid_array[b][0] - centroid_array[a][0]);
-    r_ctc.push_back( centroid_array[b][1] - centroid_array[a][1]);
-    r_ctc.push_back( centroid_array[b][2] - centroid_array[a][2]);
+    for(int b=a; b<num_tri;b++){//Each possible recieving 
+    currentpairnum++;
+    if(start <= currentpairnum && currentpairnum < end){
+      vector<double> r_ctc;
+      r_ctc.push_back( centroid_array[b][0] - centroid_array[a][0]);
+      r_ctc.push_back( centroid_array[b][1] - centroid_array[a][1]);
+      r_ctc.push_back( centroid_array[b][2] - centroid_array[a][2]);
 
       if(a !=b && dot_prod(r_ctc,normal_array[a]) >= 0 && dot_prod(r_ctc,normal_array[b]) <=0 ){
         //Checks where VF should be 0
@@ -147,20 +167,28 @@ int main(int argc, char *argv[])
         if(rayhit.hit.geomID == b){
           //If it hits something, and it's b
 
+          //printf(" Triangle %d  sees triangle %d ", a, b);
+          
           double f = calculate_viewfactor(v[a], v[b], gqp_num, gqpoints, gqweights,
            normal_array[a], normal_array[b], area_array[b]);
+          //double f =  area_array[b]*sum_j;
+          //double ar = area_array[a]*area_array[b]*sum_j;
 
           view_factors[a].push_back(VFdata(b, f));
           view_factors[b].push_back(VFdata(a, ( area_array[a] * f ) / area_array[b] )) ;
           printf("Triangle %d sees triangle %d, VF= %f \n", a,b,f);
+          //printf("Area = %f\n", ar);
 
         }
         
       }
       
     }
+    
+    }
   } 
 
+  MPI_Finalize();
   rtcReleaseScene(scene);
   rtcReleaseDevice(device);
   
@@ -168,7 +196,8 @@ int main(int argc, char *argv[])
   /*
   double total = 0.0;
   double area_sum;
-  for(int t=0;t<2;t++){
+  for(int t=0;t<4;t++){
+    //printf("Triangle %d sees %d triangles,", t, view_factors[t].size());
     for(int s=0;s<view_factors[t].size();s++){
       total += (area_array[t])* view_factors[t][s].vfactor;
     }
@@ -176,7 +205,7 @@ int main(int argc, char *argv[])
   }
   total /=area_sum;
 
-  printf("Total view factor %f \n", total);
+  printf(" total view factor %f \n", total);
   */
   printdatatofile(num_tri, centroid_array,  view_factors);
 
